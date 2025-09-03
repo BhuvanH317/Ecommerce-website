@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Edit, Trash2, Tag, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag, Search, X } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
+import SearchSuggestions from '../components/SearchSuggestions';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 const Products = () => {
   const { products, removeProduct, applyDiscount } = useAdmin();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [discountData, setDiscountData] = useState({
@@ -26,6 +29,16 @@ const Products = () => {
 
   // Get unique categories
   const categories = [...new Set(products.map(product => product.category))].filter(Boolean);
+
+  // Get search suggestions
+  const searchSuggestions = searchTerm.length >= 2 
+    ? products
+        .filter(product => 
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .slice(0, 5)
+    : [];
 
   const handleRemoveProduct = async (productId) => {
     if (window.confirm('Are you sure you want to remove this product?')) {
@@ -55,6 +68,21 @@ const Products = () => {
     setShowDiscountModal(true);
   };
 
+  const handleSearchSelect = (product) => {
+    setSearchTerm(product.name);
+    setShowSuggestions(false);
+    setSearchFocused(false);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    setShowSuggestions(false);
+  };
+
+  const clearCategory = () => {
+    setSelectedCategory('');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -70,15 +98,51 @@ const Products = () => {
 
       {/* Search and Filters */}
       <div className="bg-white p-6 rounded-lg shadow-md">
+        {/* Active Filters */}
+        {(searchTerm || selectedCategory) && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            <span className="text-sm text-gray-600">Active filters:</span>
+            {searchTerm && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800">
+                Search: "{searchTerm}"
+                <button onClick={clearSearch} className="ml-2 hover:text-primary-900">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {selectedCategory && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
+                Category: {selectedCategory}
+                <button onClick={clearCategory} className="ml-2 hover:text-blue-900">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
+          <div className="relative" onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}>
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => {
+                setSearchFocused(true);
+                if (searchTerm.length >= 2) setShowSuggestions(true);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <SearchSuggestions
+              suggestions={searchSuggestions}
+              onSelect={handleSearchSelect}
+              searchTerm={searchTerm}
+              isVisible={showSuggestions && searchFocused && searchTerm.length >= 2}
             />
           </div>
           
@@ -94,6 +158,33 @@ const Products = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Quick Category Buttons */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedCategory('')}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              !selectedCategory 
+                ? 'bg-primary-600 text-white' 
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            All
+          </button>
+          {categories.map(category => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                selectedCategory === category 
+                  ? 'bg-primary-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
       </div>
 

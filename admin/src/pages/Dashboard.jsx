@@ -16,7 +16,10 @@ const Dashboard = () => {
     const totalProducts = products.length;
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce((sum, order) => {
-      return sum + parseFloat(order.totalAmount?.toString() || 0);
+      const amount = typeof order.totalAmount === 'number' 
+        ? order.totalAmount 
+        : parseFloat(order.totalAmount?.toString() || 0);
+      return sum + amount;
     }, 0);
     const pendingOrders = orders.filter(order => order.orderStatus === 'pending').length;
 
@@ -121,7 +124,7 @@ const Dashboard = () => {
                     #{order._id.slice(-8)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.user || 'N/A'}
+                    {order.user?.name || order.user?.email || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -135,7 +138,7 @@ const Dashboard = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${parseFloat(order.totalAmount?.toString() || 0).toFixed(2)}
+                    ${typeof order.totalAmount === 'number' ? order.totalAmount.toFixed(2) : parseFloat(order.totalAmount?.toString() || 0).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(order.createdAt).toLocaleDateString()}

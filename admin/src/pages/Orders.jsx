@@ -93,13 +93,13 @@ const Orders = () => {
                     #{order._id.slice(-8)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {order.user || 'N/A'}
+                    {order.user?.name || order.user?.email || 'N/A'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {order.items?.length || 0} items
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${parseFloat(order.totalAmount?.toString() || 0).toFixed(2)}
+                    ${typeof order.totalAmount === 'number' ? order.totalAmount.toFixed(2) : parseFloat(order.totalAmount?.toString() || 0).toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
@@ -164,7 +164,7 @@ const Orders = () => {
                 <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                   <p><span className="font-medium">Status:</span> {selectedOrder.orderStatus}</p>
                   <p><span className="font-medium">Date:</span> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
-                  <p><span className="font-medium">Total:</span> ${parseFloat(selectedOrder.totalAmount?.toString() || 0).toFixed(2)}</p>
+                  <p><span className="font-medium">Total:</span> ${typeof selectedOrder.totalAmount === 'number' ? selectedOrder.totalAmount.toFixed(2) : parseFloat(selectedOrder.totalAmount?.toString() || 0).toFixed(2)}</p>
                   <p><span className="font-medium">Payment:</span> {selectedOrder.paymentInfo?.method} ({selectedOrder.paymentInfo?.status})</p>
                 </div>
               </div>
@@ -176,11 +176,11 @@ const Orders = () => {
                   {selectedOrder.items?.map((item, index) => (
                     <div key={index} className="bg-gray-50 p-3 rounded-lg flex justify-between">
                       <div>
-                        <p className="font-medium">Product ID: {item.product}</p>
+                        <p className="font-medium">{item.product?.name || `Product ID: ${item.product}`}</p>
                         <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
                       </div>
                       <p className="font-semibold">
-                        ${(parseFloat(item.price?.toString() || 0) * item.quantity).toFixed(2)}
+                        ${((typeof item.price === 'number' ? item.price : parseFloat(item.price?.toString() || 0)) * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   ))}

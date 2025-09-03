@@ -72,7 +72,6 @@ export const AdminProvider = ({ children }) => {
 
   const fetchOrders = async () => {
     try {
-      // Note: You'll need to add this endpoint to your backend
       const response = await axios.get(`${backendUrl}/api/admin/orders`, {
         headers: { atoken: token }
       });

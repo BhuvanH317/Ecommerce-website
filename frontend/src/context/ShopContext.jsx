@@ -25,7 +25,7 @@ export const ShopProvider = ({ children }) => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${backendUrl}/api/admin/products`);
+      const response = await axios.get(`${backendUrl}/api/user/products`);
       if (response.data.success) {
         setProducts(response.data.products);
       }
@@ -128,7 +128,7 @@ export const ShopProvider = ({ children }) => {
       });
       
       if (response.data.success) {
-        setOrders(response.data.order || []);
+        setOrders(response.data.orders || []);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);

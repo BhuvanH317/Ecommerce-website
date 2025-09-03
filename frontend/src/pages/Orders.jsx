@@ -104,11 +104,13 @@ const Orders = () => {
                       {order.items?.map((item, index) => (
                         <div key={index} className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900">Product ID: {item.product}</p>
+                            <p className="font-medium text-gray-900">
+                              {item.product?.name || `Product ID: ${item.product}`}
+                            </p>
                             <p className="text-gray-600 text-sm">Quantity: {item.quantity}</p>
                           </div>
                           <p className="font-semibold text-gray-900">
-                            ${(parseFloat(item.price.toString()) * item.quantity).toFixed(2)}
+                            ${((typeof item.price === 'number' ? item.price : parseFloat(item.price.toString())) * item.quantity).toFixed(2)}
                           </p>
                         </div>
                       ))}
@@ -119,7 +121,7 @@ const Orders = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold text-gray-900">Total:</span>
                       <span className="text-xl font-bold text-primary-600">
-                        ${parseFloat(order.totalAmount.toString()).toFixed(2)}
+                        ${(typeof order.totalAmount === 'number' ? order.totalAmount : parseFloat(order.totalAmount.toString())).toFixed(2)}
                       </span>
                     </div>
                   </div>

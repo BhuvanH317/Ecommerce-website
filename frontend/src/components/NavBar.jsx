@@ -1,21 +1,41 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Menu, X, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Menu, X, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useShop } from '../context/ShopContext';
+import SearchSuggestions from './SearchSuggestions';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const { user, logout } = useAuth();
-  const { cart } = useShop();
+  const { cart, products } = useShop();
   const navigate = useNavigate();
 
   const cartItemsCount = cart.reduce((total, item) => total + item.quantity, 0);
+
+  const searchSuggestions = searchTerm.length >= 2 
+    ? products
+        .filter(product => 
+          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.description.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .slice(0, 5)
+    : [];
 
   const handleLogout = () => {
     logout();
     navigate('/');
     setIsMenuOpen(false);
+  };
+
+  const handleSearchSelect = (product) => {
+    setSearchTerm('');
+    setShowSearch(false);
+    setShowSuggestions(false);
+    navigate('/products');
   };
 
   return (
@@ -45,8 +65,41 @@ const Navbar = () => {
             )}
           </div>
 
+          {/* Search Bar (Desktop) */}
+          <div className="hidden lg:flex flex-1 max-w-md mx-8">
+            <div className="relative w-full" onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (searchTerm.length >= 2) setShowSuggestions(true);
+                }}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <SearchSuggestions
+                suggestions={searchSuggestions}
+                onSelect={handleSearchSelect}
+                searchTerm={searchTerm}
+                isVisible={showSuggestions && searchTerm.length >= 2}
+              />
+            </div>
+          </div>
+
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="lg:hidden p-2 text-gray-700 hover:text-primary-600 transition-colors"
+            >
+              <Search className="w-6 h-6" />
+            </button>
+
             <Link to="/cart" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors">
               <ShoppingCart className="w-6 h-6" />
               {cartItemsCount > 0 && (
@@ -99,10 +152,48 @@ const Navbar = () => {
           </div>
         </div>
 
+        {/* Mobile Search Bar */}
+        {showSearch && (
+          <div className="lg:hidden border-t border-gray-200 p-4">
+            <div className="relative" onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setShowSuggestions(true);
+                }}
+                onFocus={() => {
+                  if (searchTerm.length >= 2) setShowSuggestions(true);
+                }}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <SearchSuggestions
+                suggestions={searchSuggestions}
+                onSelect={handleSearchSelect}
+                searchTerm={searchTerm}
+                isVisible={showSuggestions && searchTerm.length >= 2}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200">
             <div className="px-2 pt-2 pb-3 space-y-1">
+              <button
+                onClick={() => {
+                  setShowSearch(!showSearch);
+                  setIsMenuOpen(false);
+                }}
+                className="flex items-center w-full px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"
+              >
+                <Search className="w-5 h-5 mr-2" />
+                Search Products
+              </button>
               <Link
                 to="/"
                 className="block px-3 py-2 text-gray-700 hover:text-primary-600 transition-colors"

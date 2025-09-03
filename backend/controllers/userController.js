@@ -177,9 +177,21 @@ const updateProfile = async (req, res) => {
 
 const listOrder = async (req, res) => {
     try {
-        const { userId } = req.userId
-        const appointments = await orderModel.find({ userId })
-        res.json({ success: true, appointments })
+        const userId = req.userId;
+        const orders = await orderModel.find({ user: userId })
+          .populate('items.product', 'name images')
+          .sort({ createdAt: -1 });
+
+        const formattedOrders = orders.map(order => ({
+          ...order.toObject(),
+          totalAmount: parseFloat(order.totalAmount.toString()),
+          items: order.items.map(item => ({
+            ...item,
+            price: parseFloat(item.price.toString())
+          }))
+        }));
+
+        res.json({ success: true, orders: formattedOrders });
     } catch (error) {
         console.log(error)
         res.json({ success: false, message: error.message })
