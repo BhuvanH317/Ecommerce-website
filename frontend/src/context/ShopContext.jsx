@@ -128,7 +128,7 @@ export const ShopProvider = ({ children }) => {
       });
       
       if (response.data.success) {
-        setOrders(response.data.appointments || []);
+        setOrders(response.data.order || []);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
